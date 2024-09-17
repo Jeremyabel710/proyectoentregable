@@ -4,7 +4,13 @@
 
 @section('content_header')
     <h1>Ventas</h1>
+    <form action="{{ route('ventas.index') }}" method="GET" class="mb-3">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por producto, ID o precio..." class="form-control" style="width: auto; display: inline-block;">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
 @stop
+
+
 
 @section('content')
     <p><a href="{{ route('ventas.create') }}" class="btn btn-primary">Crear Venta</a></p>

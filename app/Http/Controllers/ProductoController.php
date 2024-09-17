@@ -8,10 +8,24 @@ use Illuminate\Http\Request;
 class ProductoController extends Controller
 {
     // Muestra la lista de productos
-    public function index()
+    public function index(Request $request)
     {
-        $productos = Producto::all(); // Obtén todos los productos
-        return view('productos.index', ['productos' => $productos]); // Pasa los productos a la vista
+        $search = $request->get('search');
+        $productos = Producto::when($search, function ($query) use ($search) {
+            return $query->where('nombre', 'LIKE', "%$search%")
+                        ->orWhere('id', 'LIKE', "%$search%")
+                        ->orWhere('precio', 'LIKE', "%$search%")
+                        ->orWhere('cantidad', 'LIKE', "%$search%")
+                        ->orWhere('descripcion', 'LIKE', "%$search%"); // Ajusta según tus columnas
+        })->get();
+
+        // Comprobar si la solicitud es AJAX
+        if ($request->ajax()) {
+            return response()->json(['data' => $productos]);
+        }
+
+        // Pasar los productos a la vista
+        return view('productos.index', ['productos' => $productos, 'search' => $search]);
     }
 
     // Muestra el formulario para crear un nuevo producto
