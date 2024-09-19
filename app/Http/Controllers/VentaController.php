@@ -3,98 +3,188 @@
 namespace App\Http\Controllers;
 
 use App\Models\Venta;
+use App\Models\DetalleVenta;
 use App\Models\Producto;
+use App\Models\Cliente;
 use Illuminate\Http\Request;
 
 class VentaController extends Controller
 {
-    // Mostrar una lista de todas las ventas
     public function index(Request $request)
     {
-        $search = $request->get('search');
-    
-        // Obtén las ventas y filtra según la búsqueda
-        $ventas = Venta::with('producto') // Carga el producto asociado
-            ->when($search, function ($query) use ($search) {
-                return $query->where('cantidad_vendida', 'LIKE', "%$search%")
-                    ->orWhere('id', 'LIKE', "%$search%")
-                    ->orWhere('precio_total', 'LIKE', "%$search%")
-                    ->orWhere('producto_id', 'LIKE', "%$search%")
-                    ->orWhereHas('producto', function ($query) use ($search) {
-                        $query->where('nombre', 'LIKE', "%$search%"); // Filtra por el nombre del producto
-                    });
-            })
-            ->paginate(10); // Cambia el número a la cantidad de registros por página que desees
-    
-        // Comprobar si la solicitud es AJAX
-        if ($request->ajax()) {
-            return response()->json(['data' => $ventas]);
-        }
-    
-        // Pasar las ventas a la vista
-        return view('ventas.index', compact('ventas', 'search'));
-    } 
-    
-    // Mostrar el formulario para crear una nueva venta
+        $query = $request->input('search');
+        $ventas = Venta::when($query, function ($queryBuilder) use ($query) {
+            return $queryBuilder->where('id_cliente', 'like', "%{$query}%")
+                ->orWhere('total', 'like', "%{$query}%");
+        })->paginate(10);
+        return view('ventas.index', compact('ventas'));
+    }
+
     public function create()
     {
+        $clientes = Cliente::all();
         $productos = Producto::all();
-        return view('ventas.create', compact('productos'));
+        return view('ventas.create', compact('clientes', 'productos'));
     }
 
-    // Almacenar una nueva venta
     public function store(Request $request)
     {
+        // Validar la solicitud
         $request->validate([
-            'producto_id' => 'required|exists:productos,id',
-            'cantidad_vendida' => 'required|integer|min:1',
-            'precio_total' => 'required|numeric|min:0',
+            'id_cliente' => 'required|exists:clientes,id_cliente',
+            'fecha_venta' => 'required|date',
+            'id_producto.*' => 'required|exists:productos,id_producto',
+            'cantidad.*' => 'required|integer|min:1',
         ]);
-
-        Venta::create([
-            'producto_id' => $request->input('producto_id'),
-            'cantidad_vendida' => $request->input('cantidad_vendida'),
-            'precio_total' => $request->input('precio_total'),
-        ]);
-
-        return redirect()->route('ventas.index')->with('success', 'Venta creada con éxito.');
+    
+        // Crear la venta
+        $venta = new Venta();
+        $venta->id_cliente = $request->id_cliente;
+        $venta->fecha_venta = $request->fecha_venta;
+        $venta->total = 0; // El total se calculará al final
+        $venta->save();
+    
+        $total = 0;
+    
+        // Procesar cada detalle de la venta
+        foreach ($request->id_producto as $index => $idProducto) {
+            $producto = Producto::find($idProducto);
+            $cantidad = $request->cantidad[$index];
+            $precioUnitario = $producto->precio; // Precio del producto
+    
+            // Validar que la cantidad no exceda el stock
+            if ($producto->stock < $cantidad) {
+                return redirect()->back()->withErrors([
+                    'cantidad' => "La cantidad solicitada para el producto '{$producto->nombre_producto}' excede el stock disponible ({$producto->stock} unidades).",
+                ]);
+            }
+    
+            // Crear el detalle de la venta
+            $detalle = new DetalleVenta();
+            $detalle->id_venta = $venta->id_venta;
+            $detalle->id_producto = $producto->id_producto;
+            $detalle->cantidad = $cantidad;
+            $detalle->precio_unitario = $precioUnitario;
+            $detalle->save();
+    
+            // Restar la cantidad del stock del producto
+            $producto->stock -= $cantidad;
+            $producto->save();
+    
+            // Sumar al total de la venta
+            $total += $cantidad * $precioUnitario;
+        }
+    
+        // Actualizar el total de la venta
+        $venta->total = $total;
+        $venta->save();
+    
+        return redirect()->route('ventas.index')->with('success', 'Venta registrada correctamente.');
     }
 
-    // Mostrar los detalles de una venta específica
-    public function show(Venta $venta)
+    public function edit($id)
     {
-        return view('ventas.show', compact('venta'));
-    }
-
-    // Mostrar el formulario para editar una venta existente
-    public function edit(Venta $venta)
-    {
+        $venta = Venta::with('detalles')->findOrFail($id);
+        $clientes = Cliente::all();
         $productos = Producto::all();
-        return view('ventas.edit', compact('venta', 'productos'));
+    
+        return view('ventas.edit', compact('venta', 'clientes', 'productos'));
     }
+    
 
-    // Actualizar una venta existente
-    public function update(Request $request, Venta $venta)
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'producto_id' => 'required|exists:productos,id',
-            'cantidad_vendida' => 'required|integer|min:1',
-            'precio_total' => 'required|numeric|min:0',
-        ]);
-
-        $venta->update([
-            'producto_id' => $request->input('producto_id'),
-            'cantidad_vendida' => $request->input('cantidad_vendida'),
-            'precio_total' => $request->input('precio_total'),
-        ]);
-
-        return redirect()->route('ventas.index')->with('success', 'Venta actualizada con éxito.');
+        // Obtener la venta
+        $venta = Venta::findOrFail($id);
+        $detallesAntiguos = $venta->detalles;
+    
+        // Obtener los productos actuales y los nuevos productos del formulario
+        $productosNuevos = $request->input('id_producto', []);
+        $cantidadesNuevas = $request->input('cantidad', []);
+        $preciosUnitarios = $request->input('precio_unitario', []);
+    
+        // Recorrer los detalles antiguos y sumar el stock de los productos eliminados
+        foreach ($detallesAntiguos as $detalle) {
+            $producto = Producto::find($detalle->id_producto);
+            $producto->stock += $detalle->cantidad; // Devolver el stock al eliminar
+            $producto->save();
+        }
+    
+        // Limpiar detalles existentes
+        DetalleVenta::where('id_venta', $id)->delete();
+    
+        // Si no hay nuevos productos, eliminar la venta y redirigir
+        if (count($productosNuevos) == 0) {
+            $venta->delete();  // Eliminar la venta si no quedan productos
+            return redirect()->route('ventas.index')->with('success', 'Venta eliminada porque no quedan productos.');
+        }
+    
+        // Variable para calcular el nuevo total
+        $nuevoTotal = 0;
+    
+        // Si hay nuevos productos, agregar detalles de venta y actualizar el total
+        foreach ($productosNuevos as $index => $idProducto) {
+            $cantidad = $cantidadesNuevas[$index];
+            $precioUnitario = $preciosUnitarios[$index];
+            $subtotal = $cantidad * $precioUnitario;
+    
+            // Verificar si el stock es suficiente
+            $producto = Producto::find($idProducto);
+            if ($producto->stock < $cantidad) {
+                return redirect()->back()->withErrors(['Stock insuficiente para el producto: ' . $producto->nombre_producto]);
+            }
+    
+            // Crear nuevo detalle de venta
+            DetalleVenta::create([
+                'id_venta' => $venta->id_venta,
+                'id_producto' => $idProducto,
+                'cantidad' => $cantidad,
+                'precio_unitario' => $precioUnitario,
+                'subtotal' => $subtotal,
+            ]);
+    
+            // Restar del stock disponible
+            $producto->stock -= $cantidad;
+            $producto->save();
+    
+            // Sumar al nuevo total de la venta
+            $nuevoTotal += $subtotal;
+        }
+    
+        // Actualizar el total de la venta con el nuevo total calculado
+        $venta->total = $nuevoTotal;
+        $venta->save();
+    
+        return redirect()->route('ventas.index')->with('success', 'Venta actualizada correctamente.');
     }
+    
+    
 
-    // Eliminar una venta existente
-    public function destroy(Venta $venta)
+    public function destroy($id)
     {
+        // Encontrar la venta
+        $venta = Venta::findOrFail($id);
+    
+        // Recuperar los detalles de la venta
+        $detalles = $venta->detalles;
+    
+        // Restaurar el stock de cada producto
+        foreach ($detalles as $detalle) {
+            $producto = Producto::find($detalle->id_producto);
+            if ($producto) {
+                // Aumentar el stock del producto en la cantidad vendida
+                $producto->stock += $detalle->cantidad;
+                $producto->save();
+            }
+        }
+    
+        // Eliminar los detalles de venta relacionados
+        $venta->detalles()->delete();
+    
+        // Eliminar la venta
         $venta->delete();
-        return redirect()->route('ventas.index')->with('success', 'Venta eliminada con éxito.');
+    
+        return redirect()->route('ventas.index')->with('success', 'Venta eliminada y stock restaurado con éxito.');
     }
+    
 }

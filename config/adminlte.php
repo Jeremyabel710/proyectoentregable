@@ -307,6 +307,11 @@ return [
 
     // Elementos del menú lateral:
     [
+        'text' => 'Clientes',
+        'url'  => 'clientes', // Ruta a la vista index de clientes
+        'icon' => 'fas fa-users',
+    ],
+    [
         'text' => 'Productos',
         'url'  => 'productos', // Ruta a la vista index de productos
         'icon' => 'fas fa-box',
@@ -316,8 +321,13 @@ return [
         'url'  => 'ventas', // Ruta a la vista index de ventas
         'icon' => 'fas fa-shopping-cart',
     ],
+    [
+        'text' => 'Detalles de Ventas',
+        'url'  => 'detalles_venta', // Ruta a la vista index de detalles de ventas
+        'icon' => 'fas fa-receipt',
     ],
-
+    ],
+    
 
 
     /*

@@ -3,50 +3,42 @@
 @section('title', 'Ventas')
 
 @section('content_header')
+<div class="table">
     <h1>Ventas</h1>
-    <form action="{{ route('ventas.index') }}" method="GET" class="mb-3">
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por producto, ID o precio..." class="form-control" style="width: auto; display: inline-block;">
+    <form method="GET" action="{{ route('ventas.index') }}">
+        <input type="text" name="search" placeholder="Buscar..." value="{{ request('search') }}">
         <button type="submit" class="btn btn-primary">Buscar</button>
     </form>
-@stop
-
-
-
-@section('content')
-    <p><a href="{{ route('ventas.create') }}" class="btn btn-primary">Crear Venta</a></p>
-    
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    <table class="table">
+    <a href="{{ route('ventas.create') }}" class="btn btn-primary">Crear Venta</a>
+    <table>
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Producto</th>
-                <th>Cantidad Vendida</th>
-                <th>Precio Total</th>
+                <th>Fecha</th>
+                <th>ID Cliente</th>
+                <th>Total</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($ventas as $venta)
-                <tr>
-                    <td>{{ $venta->id }}</td>
-                    <td>{{ $venta->producto->nombre }}</td>
-                    <td>{{ $venta->cantidad_vendida }}</td>
-                    <td>{{ $venta->formatted_total }}</td>
-                    <td>
-                        <a href="{{ route('ventas.show', $venta) }}" class="btn btn-info">Ver</a>
-                        <a href="{{ route('ventas.edit', $venta) }}" class="btn btn-warning">Editar</a>
-                        <form action="{{ route('ventas.destroy', $venta) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
+            @foreach ($ventas as $venta)
+            <tr>
+                <td>{{ $venta->id_venta }}</td>
+                <td>{{ $venta->fecha_venta }}</td>
+                <td>{{ $venta->cliente->nombre }}</td>
+                <td>{{ $venta->total }}</td>
+                <td>
+                    <a href="{{ route('ventas.edit', $venta->id_venta) }}" class="btn btn-warning">Editar</a>
+                    <form action="{{ route('ventas.destroy', $venta->id_venta) }}" method="POST" style="display:inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
             @endforeach
         </tbody>
     </table>
-@stop
+    {{ $ventas->links() }}
+</div>
+@endsection

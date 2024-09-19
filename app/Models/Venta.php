@@ -9,41 +9,19 @@ class Venta extends Model
 {
     use HasFactory;
 
-    // Define el nombre de la tabla si no sigue la convención de Laravel
     protected $table = 'ventas';
+    protected $primaryKey = 'id_venta';
+    protected $fillable = ['fecha_venta', 'id_cliente', 'total'];
 
-    // Los campos que son asignables en masa
-    protected $fillable = [
-        'producto_id',
-        'cantidad_vendida',
-        'precio_total',
-    ];
+    public $timestamps = false;  // Desactivamos los timestamps
 
-    // Los campos que no deberían ser asignables en masa
-    protected $guarded = [];
-
-    // Si los timestamps no están presentes en la tabla, desactívalos
-    public $timestamps = true;
-
-    // Define las relaciones, si las hay
-    public function producto()
+    public function cliente()
     {
-        return $this->belongsTo(Producto::class, 'producto_id');
+        return $this->belongsTo(Cliente::class, 'id_cliente');
     }
 
-    // Mutadores y accesores si es necesario
-    public function setCantidadVendidaAttribute($value)
+    public function detalles()
     {
-        $this->attributes['cantidad_vendida'] = (int) $value;
-    }
-
-    public function setPrecioTotalAttribute($value)
-    {
-        $this->attributes['precio_total'] = round($value, 2);
-    }
-
-    public function getFormattedTotalAttribute()
-    {
-        return number_format($this->precio_total, 2);
+        return $this->hasMany(DetalleVenta::class, 'id_venta');
     }
 }

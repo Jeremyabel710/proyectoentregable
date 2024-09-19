@@ -1,17 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentaController;
+use App\Http\Controllers\DetalleVentaController;
 
 Route::get('/', function () {
     return view('auth.login');
 });
 
-// Rutas de recursos para productos y ventas
+Route::resource('clientes', ClienteController::class);
 Route::resource('productos', ProductoController::class);
-
 Route::resource('ventas', VentaController::class);
+Route::resource('detalles_venta', DetalleVentaController::class);
 
 // Rutas protegidas por autenticación
 Route::middleware([
