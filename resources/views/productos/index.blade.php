@@ -4,6 +4,10 @@
 
 @section('content_header')
     <h1>Lista de Productos</h1>
+    <form action="{{ route('productos.index') }}" method="GET" class="mb-3">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por producto..." class="form-control" style="width: auto; display: inline-block;">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
 @stop
 
 @section('content')
