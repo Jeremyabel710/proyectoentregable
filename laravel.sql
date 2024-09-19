@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 16-09-2024 a las 23:31:18
+-- Tiempo de generación: 19-09-2024 a las 04:30:58
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `laravelentre`
+-- Base de datos: `laravel`
 --
 
 -- --------------------------------------------------------
@@ -38,8 +38,8 @@ CREATE TABLE `cache` (
 --
 
 INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('8b7b4a6cd9e5a1b49d349ccb369cb1f8', 'i:1;', 1726518559),
-('8b7b4a6cd9e5a1b49d349ccb369cb1f8:timer', 'i:1726518559;', 1726518559);
+('8b7b4a6cd9e5a1b49d349ccb369cb1f8', 'i:2;', 1726619629),
+('8b7b4a6cd9e5a1b49d349ccb369cb1f8:timer', 'i:1726619629;', 1726619629);
 
 -- --------------------------------------------------------
 
@@ -52,6 +52,57 @@ CREATE TABLE `cache_locks` (
   `owner` varchar(255) NOT NULL,
   `expiration` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `clientes`
+--
+
+CREATE TABLE `clientes` (
+  `id_cliente` int(11) NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `correo` varchar(100) DEFAULT NULL,
+  `telefono` varchar(15) DEFAULT NULL,
+  `direccion` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `clientes`
+--
+
+INSERT INTO `clientes` (`id_cliente`, `nombre`, `correo`, `telefono`, `direccion`, `created_at`, `updated_at`) VALUES
+(1, 'Juan Pérez', 'juan.perez@example.com', '555-1234', 'Av. Siempre Viva 123, Ciudad X', NULL, NULL),
+(2, 'Ana García', 'ana.garcia@example.com', '555-5678', 'Calle Falsa 456, Ciudad Y', NULL, NULL),
+(8, 'Andy', 'ndtrillo@gmail.com', '907988785', 'villamoto', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detalles_venta`
+--
+
+CREATE TABLE `detalles_venta` (
+  `id_detalle` int(11) NOT NULL,
+  `id_venta` int(11) DEFAULT NULL,
+  `id_producto` int(11) DEFAULT NULL,
+  `cantidad` int(11) NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL,
+  `subtotal` decimal(10,2) GENERATED ALWAYS AS (`cantidad` * `precio_unitario`) STORED
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `detalles_venta`
+--
+
+INSERT INTO `detalles_venta` (`id_detalle`, `id_venta`, `id_producto`, `cantidad`, `precio_unitario`) VALUES
+(63, 36, 1, 10, 850.00),
+(64, 36, 2, 10, 600.00),
+(65, 37, 1, 10, 850.00),
+(67, 37, 9, 5, 35.00),
+(68, 37, 10, 20, 23.00);
 
 -- --------------------------------------------------------
 
@@ -127,7 +178,12 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (4, '2024_09_16_184033_add_two_factor_columns_to_users_table', 1),
 (5, '2024_09_16_184106_create_personal_access_tokens_table', 1),
 (6, '2024_09_16_185941_create_productos_table', 2),
-(7, '2024_09_16_185950_create_ventas_table', 2);
+(7, '2024_09_16_185950_create_ventas_table', 2),
+(8, '2024_09_17_044531_add_timestamps_to_productos_table', 3),
+(9, '2024_09_17_050140_add_timestamps_to_ventas_table', 3),
+(10, '2024_09_17_051310_add_timestamps_to_detalles_venta_table', 4),
+(11, '2024_09_18_020312_add_timestamps_to_clientes_table', 5),
+(12, '2024_09_18_020832_add_timestamps_to_productos_table', 6);
 
 -- --------------------------------------------------------
 
@@ -167,23 +223,24 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 CREATE TABLE `productos` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `nombre` varchar(255) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `nombre_producto` varchar(100) NOT NULL,
   `descripcion` text DEFAULT NULL,
-  `precio` decimal(8,2) NOT NULL,
-  `cantidad` int(11) NOT NULL,
+  `precio` decimal(10,2) NOT NULL,
+  `stock` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id`, `nombre`, `descripcion`, `precio`, `cantidad`, `created_at`, `updated_at`) VALUES
-(1, 'Botellas', 'contiene agua', 1.20, 3, '2024-09-17 01:20:21', '2024-09-17 01:20:21'),
-(2, 'Impresora', 'lleva tinta', 50.00, 8, '2024-09-17 01:23:31', '2024-09-17 01:23:31'),
-(3, 'Lapicero', 'de calidad', 3.00, 50, '2024-09-17 01:24:01', '2024-09-17 01:24:01');
+INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio`, `stock`, `created_at`, `updated_at`) VALUES
+(1, 'Laptop Dell', 'Laptop Dell de 14 pulgadas, 8GB RAM, 256GB SSD', 850.00, 100, NULL, NULL),
+(2, 'Smartphone Samsung', 'Samsung Galaxy S20 con pantalla de 6.2 pulgadas', 600.00, 115, NULL, NULL),
+(9, 'Teclado', 'accesorio para la computadora', 35.00, 100, NULL, NULL),
+(10, 'Mouse', 'periferico para conputadora', 23.00, 100, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -205,7 +262,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('p1kjouJVNIweRxcBtYDHJTxlLH92aUMy2WkDDQL3', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiMGdJb2lOVmZmcXZBQnhXemlwdkVjTFdzTmRTN0ZtWll1OWlaSHo2ciI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9wcm9kdWN0b3MiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MjE6InBhc3N3b3JkX2hhc2hfc2FuY3R1bSI7czo2MDoiJDJ5JDEyJE1IaEh1UGxBeXQzRkJRTzBXR1g1ak8vMkg4MzdvYW1ucHZXUVM0MEpPWG54dktHL0hxM2wuIjt9', 1726521310);
+('eFCc5F2NqVhO8xtBnX3WGxb9kgr2gHC6w1nUmW7D', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 OPR/113.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiUldraWx2Z3JjQnVCc3I4ZnVIMHJCRU1zVWVFZnAzVjdZdzRUVEphbyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzY6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9kZXRhbGxlc192ZW50YSI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1726712866);
 
 -- --------------------------------------------------------
 
@@ -243,21 +300,19 @@ INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `tw
 --
 
 CREATE TABLE `ventas` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `producto_id` bigint(20) UNSIGNED NOT NULL,
-  `cantidad_vendida` int(11) NOT NULL,
-  `precio_total` decimal(8,2) NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `id_venta` int(11) NOT NULL,
+  `fecha_venta` date NOT NULL,
+  `id_cliente` int(11) DEFAULT NULL,
+  `total` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `ventas`
 --
 
-INSERT INTO `ventas` (`id`, `producto_id`, `cantidad_vendida`, `precio_total`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 50.00, '2024-09-17 01:22:48', '2024-09-17 01:23:07'),
-(2, 3, 10, 30.00, '2024-09-17 01:24:12', '2024-09-17 01:24:12');
+INSERT INTO `ventas` (`id_venta`, `fecha_venta`, `id_cliente`, `total`) VALUES
+(36, '2024-09-18', 1, 14500.00),
+(37, '2024-09-18', 2, 9135.00);
 
 --
 -- Índices para tablas volcadas
@@ -274,6 +329,20 @@ ALTER TABLE `cache`
 --
 ALTER TABLE `cache_locks`
   ADD PRIMARY KEY (`key`);
+
+--
+-- Indices de la tabla `clientes`
+--
+ALTER TABLE `clientes`
+  ADD PRIMARY KEY (`id_cliente`);
+
+--
+-- Indices de la tabla `detalles_venta`
+--
+ALTER TABLE `detalles_venta`
+  ADD PRIMARY KEY (`id_detalle`),
+  ADD KEY `id_venta` (`id_venta`),
+  ADD KEY `id_producto` (`id_producto`);
 
 --
 -- Indices de la tabla `failed_jobs`
@@ -319,7 +388,7 @@ ALTER TABLE `personal_access_tokens`
 -- Indices de la tabla `productos`
 --
 ALTER TABLE `productos`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id_producto`);
 
 --
 -- Indices de la tabla `sessions`
@@ -340,12 +409,24 @@ ALTER TABLE `users`
 -- Indices de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `ventas_producto_id_foreign` (`producto_id`);
+  ADD PRIMARY KEY (`id_venta`),
+  ADD KEY `id_cliente` (`id_cliente`);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
 --
+
+--
+-- AUTO_INCREMENT de la tabla `clientes`
+--
+ALTER TABLE `clientes`
+  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT de la tabla `detalles_venta`
+--
+ALTER TABLE `detalles_venta`
+  MODIFY `id_detalle` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT de la tabla `failed_jobs`
@@ -363,7 +444,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT de la tabla `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `personal_access_tokens`
@@ -375,7 +456,7 @@ ALTER TABLE `personal_access_tokens`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
@@ -387,17 +468,24 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_venta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- Restricciones para tablas volcadas
 --
 
 --
+-- Filtros para la tabla `detalles_venta`
+--
+ALTER TABLE `detalles_venta`
+  ADD CONSTRAINT `detalles_venta_ibfk_1` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id_venta`),
+  ADD CONSTRAINT `detalles_venta_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`);
+
+--
 -- Filtros para la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  ADD CONSTRAINT `ventas_producto_id_foreign` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`);
+  ADD CONSTRAINT `ventas_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -1,35 +1,35 @@
 @extends('adminlte::page')
 
-@section('title', 'Crear Producto')
+@section('title', 'Crear Cliente')
 
 @section('content_header')
 <div class="container">
-    <h1>Crear Producto</h1>
-    <form method="POST" action="{{ route('productos.store') }}">
+    <h1>Crear Cliente</h1>
+    <form method="POST" action="{{ route('clientes.store') }}">
         @csrf
         <div class="form-group">
-            <label for="nombre_producto">Nombre:</label>
-            <input type="text" name="nombre_producto" class="form-control" required>
+            <label for="nombre">Nombre:</label>
+            <input type="text" name="nombre" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="correo">Correo:</label>
+            <input type="email" name="correo" class="form-control">
         </div>
 
         <div class="form-group">
-            <label for="descripcion">Descripción:</label>
-            <input type="text" name="descripcion" class="form-control">
+            <label for="telefono">Teléfono:</label>
+            <input type="text" name="telefono" class="form-control">
         </div>
 
         <div class="form-group">
-            <label for="precio">Precio:</label>
-            <input type="number" name="precio" class="form-control" step="0.01" required>
-        </div>
-
-        <div class="form-group">
-            <label for="stock">Stock:</label>
-            <input type="number" name="stock" class="form-control" required>
+            <label for="direccion">Dirección:</label>
+            <input type="text" name="direccion" class="form-control">
         </div>
 
         <button type="submit" class="btn btn-success">Guardar</button>
     </form>
-    <a href="{{ route('productos.index') }}" class="btn btn-secondary mt-2">Regresar</a>
+    <a href="{{ route('clientes.index') }}" class="btn btn-secondary mt-2">Regresar</a>
 </div>
 @endsection
 
@@ -40,7 +40,6 @@
         padding: 20px;
         border-radius: 5px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        margin-top: 20px;
     }
 
     h1 {
@@ -60,16 +59,17 @@
         border-radius: 5px;
     }
 
-    .btn-success {
+    .btn {
         padding: 10px 15px;
         border-radius: 5px;
+    }
+
+    .btn-success {
         background-color: #28a745;
         border: none;
     }
 
     .btn-secondary {
-        padding: 10px 15px;
-        border-radius: 5px;
         background-color: #6c757d;
         border: none;
     }
